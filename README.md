@@ -1,6 +1,6 @@
 
 [![Build Status](https://travis-ci.org/Paikz/ramverk2.svg?branch=master)](https://travis-ci.org/Paikz/ramverk2)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Paikz/ramverk2/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Paikz/ramverk2/?branch=master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Paikz/placeholder-server/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Paikz/placeholder-server/?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/Paikz/ramverk2/badge.svg?branch=master)](https://coveralls.io/github/Paikz/ramverk2?branch=master)
 
 # placeholder-server
