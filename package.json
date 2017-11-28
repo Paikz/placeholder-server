@@ -1,0 +1,34 @@
+{
+  "name": "placeholder-server",
+  "version": "1.0.0",
+  "description": "Test project in express",
+  "main": "index.js",
+  "scripts": {
+    "test": "nyc --reporter=html --reporter=text mocha --reporter=dot test/**/*.js",
+    "report-coveralls": "nyc report --reporter=text-lcov | coveralls",
+    "clean": "rm -rf npm-debug.log coverage .nyc_output",
+    "preclean-all": "npm run clean",
+    "clean-all": "rm -rf node_modules",
+    "start": "node index.js",
+    "node6": "docker-compose run -d node6",
+    "node7": "docker-compose run -d node7",
+    "node8": "docker-compose run -d node8",
+    "node9": "docker-compose run -d node9",
+    "test-node6": "docker-compose run test-node6 npm test",
+    "test-node7": "docker-compose run test-node7 npm test",
+    "test-node8": "docker-compose run test-node8 npm test",
+    "test-node9": "docker-compose run test-node9 npm test",
+    "stop": "docker-compose down"
+  },
+  "author": "Philip Esmailzade",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.2"
+  },
+  "devDependencies": {
+    "coveralls": "^3.0.0",
+    "mocha": "^4.0.1",
+    "nyc": "^11.3.0",
+    "supertest": "^3.0.0"
+  }
+}

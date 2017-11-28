@@ -1,0 +1,66 @@
+version: "3"
+services:
+    node9:
+        image: node:9-alpine
+        user: "node"
+        working_dir: /home/node/app
+        environment:
+            - NODE_ENV=production
+            - PORT=8089
+        ports:
+            - "8089:8089"
+        volumes:
+            - .:/home/node/app
+        command: "npm start"
+    node8:
+        image: node:8-alpine
+        user: "node"
+        working_dir: /home/node/app
+        environment:
+            - NODE_ENV=production
+            - PORT=8088
+        ports:
+            - "8088:8088"
+        volumes:
+            - .:/home/node/app
+        command: "npm start"
+    node7:
+        image: node:7-alpine
+        user: "node"
+        working_dir: /home/node/app
+        environment:
+            - NODE_ENV=production
+            - PORT=8087
+        ports:
+            - "8087:8087"
+        volumes:
+            - .:/home/node/app
+        command: "npm start"
+    node6:
+        image: node:6-alpine
+        user: "node"
+        working_dir: /home/node/app
+        environment:
+            - NODE_ENV=production
+            - DBWEBB_PORT=8086
+        ports:
+            - "8086:8086"
+        volumes:
+            - .:/home/node/app
+        command: "npm start"
+    test-node6:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile-node-6-alpine
+    test-node7:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile-node-7-alpine
+    test-node8:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile-node-8-alpine
+    test-node9:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile-node-9-alpine
