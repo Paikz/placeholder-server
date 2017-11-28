@@ -25,7 +25,7 @@ app.use((err, req, res, next) => {
     if (res.headersSent) {
         return next(err);
     }
-    err.status = err.status || 500;
+    err.status = err.status || /* istanbul ignore next: hard to reproduce this failure */ 500;
     res.status(err.status);
     res.json({
         error: err,
