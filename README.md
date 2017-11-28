@@ -1,7 +1,7 @@
 
-[![Build Status](https://travis-ci.org/Paikz/ramverk2.svg?branch=master)](https://travis-ci.org/Paikz/ramverk2)
+[![Build Status](https://travis-ci.org/Paikz/placeholder-server.svg?branch=master)](https://travis-ci.org/Paikz/placeholder-server)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Paikz/placeholder-server/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Paikz/placeholder-server/?branch=master)
-[![Coverage Status](https://coveralls.io/repos/github/Paikz/ramverk2/badge.svg?branch=master)](https://coveralls.io/github/Paikz/ramverk2?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/Paikz/placeholder-server/badge.svg?branch=master)](https://coveralls.io/github/Paikz/placeholder-server?branch=master)
 
 # placeholder-server
 
