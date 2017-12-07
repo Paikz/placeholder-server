@@ -3,7 +3,9 @@
 
 var http = require('http');
 var app = require('./bin/app');
+var socket = require('./websocket/socket');
 var server = http.createServer(app);
+var socketServer = socket(server);
 
 // Start up server
 console.log("Express is ready.");
