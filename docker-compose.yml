@@ -1,5 +1,28 @@
 version: "3"
 services:
+      express:
+          build:
+              context: .
+              dockerfile: docker/Dockerfile-node-alpine
+          environment:
+              - DBWEBB_DSN=mongodb://mongodb:27017/test
+          links:
+              - mongodb
+          volumes:
+              - ./:/app/
+              - /app/node_modules/
+          ports:
+              - 3000:3000
+          command: "node index.js"
+      mongodb:
+          image: mongo
+          environment:
+              - MONGO_DATA_DIR=/data/db
+          volumes:
+              - ./data/db:/data/db
+          ports:
+              - 27017:27017
+          command: mongod --bind_ip_all
       node9:
           image: "node:9"
           user: "node"

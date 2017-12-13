@@ -10,6 +10,7 @@
     "preclean-all": "npm run clean",
     "clean-all": "rm -rf node_modules",
     "start": "node index.js",
+    "docker-start": "docker-compose up express",
     "node6": "docker-compose up -d node6",
     "node7": "docker-compose up -d node7",
     "node8": "docker-compose up -d node8",
@@ -26,8 +27,10 @@
     "express": "^4.16.2"
   },
   "devDependencies": {
+    "body-parser": "^1.18.2",
     "coveralls": "^3.0.0",
     "mocha": "^4.0.1",
+    "mongoose": "^4.13.7",
     "nyc": "^11.3.0",
     "supertest": "^3.0.0",
     "ws": "^3.3.2"
