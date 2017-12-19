@@ -14,6 +14,21 @@ router.use((req, res, next) => {
     next();
 });
 
+router.route("/api/users")
+    .post(function(req, res) {
+        var newUser = new UserModel({ username: req.body.username, email: req.body.email, password: req.body.password});
+        var salt = bcrypt.genSaltSync(10);
+        newUser.password = bcrypt.hashSync(req.body.password, salt);
+
+        newUser.save(function (err) {
+            if (err && err.code === 11000) {
+                return res.status(400).send({ message: 'Duplicate email.' });
+            }
+            if (err) return res.send(err);
+            res.send("User created.");
+        });
+    })
+
 router.route("/api/authenticate")
     .post(function(req, res) {
         UserModel.findOne({
@@ -21,17 +36,17 @@ router.route("/api/authenticate")
         }, function(err, user) {
             if (err) return res.send(err);
             if (!user) {
-                res.json({ success: false, message: 'Authentication failed. User not found.' });
+                return res.status(401).send({ success: false, message: 'Authentication failed.' });
             } else if (user) {
                 if (!user.comparePassword(req.body.password)) {
-                    res.json({ success: false, message: 'Authentication failed. Wrong password.' });
+                    return res.status(401).send({ success: false, message: 'Authentication failed.' });
                 } else {
                     const payload = {
                         _id: user._id,
                         username: user.username,
                         email: user.email
                     };
-                    var token = jwt.sign(payload, "TOKENAUTHENTIFICATION", {
+                    var token = jwt.sign(payload, "TOKENAUTHENTICATION", {
                         expiresIn: '24h'
                     });
 
@@ -48,9 +63,9 @@ router.route("/api/authenticate")
 router.use(function(req, res, next) {
   var token = req.body.token || req.query.token || req.headers['x-access-token'];
   if (token) {
-    jwt.verify(token, "TOKENAUTHENTIFICATION", function(err, decoded) {
+    jwt.verify(token, "TOKENAUTHENTICATION", function(err, decoded) {
       if (err) {
-        return res.json({ success: false, message: 'Failed to authenticate token.' });
+        return res.send({ success: false, message: 'Failed to authenticate token.' });
       } else {
         // if everything is good, save to request for use in other routes
         req.decoded = decoded;
@@ -70,17 +85,6 @@ router.get("/", (req, res) => {
 });
 
 router.route("/api/users")
-    .post(function(req, res) {
-        var newUser = new UserModel({ username: req.body.username, email: req.body.email, password: req.body.password});
-        var salt = bcrypt.genSaltSync(10);
-        newUser.password = bcrypt.hashSync(req.body.password, salt);
-
-        newUser.save(function (err) {
-          if (err) return res.send(err);
-          res.send("User created.");
-        });
-    })
-
     .get(function(req, res) {
         UserModel.find(function (err, users) {
           if (err) return res.send(err);
