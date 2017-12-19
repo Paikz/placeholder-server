@@ -27,6 +27,7 @@
     "express": "^4.16.2"
   },
   "devDependencies": {
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.2",
     "coveralls": "^3.0.0",
     "jsonwebtoken": "^8.1.0",

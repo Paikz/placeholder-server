@@ -1,24 +1,34 @@
 "use strict";
 
 var mongoose = require('mongoose');
-mongoose.Promise = global.Promise;
+var bcrypt   = require('bcryptjs');
 
 var userSchema = mongoose.Schema({
     username: {
-      type: String,
-      required: true
+        type: String,
+        unique: true,
+        dropDups: true,
+        lowercase: true,
+        required: true,
+        trim: true
     },
     email: {
         type: String,
         unique: true,
         dropDups: true,
-        lowercase: true
+        lowercase: true,
+        required: true,
+        trim: true
     },
     password:  {
-      type: String,
-      required: true
+        type: String,
+        required: true
     }
 });
+
+userSchema.methods.comparePassword = function(password) {
+    return bcrypt.compareSync(password, this.password);
+}
 
 var User = mongoose.model('User',userSchema);
 

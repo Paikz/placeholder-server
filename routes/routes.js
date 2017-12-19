@@ -1,7 +1,9 @@
 
-var express = require('express');
-var mongoose = require('mongoose');
-var router = express.Router();
+var express   = require('express');
+var mongoose  = require('mongoose');
+var jwt       = require('jsonwebtoken');
+var bcrypt    = require('bcryptjs');
+var router    = express.Router();
 
 //Models
 var User = require('../models/user.model')
@@ -12,15 +14,68 @@ router.use((req, res, next) => {
     next();
 });
 
+router.route("/api/authenticate")
+    .post(function(req, res) {
+        UserModel.findOne({
+            username: req.body.username
+        }, function(err, user) {
+            if (err) return res.send(err);
+            if (!user) {
+                res.json({ success: false, message: 'Authentication failed. User not found.' });
+            } else if (user) {
+                if (!user.comparePassword(req.body.password)) {
+                    res.json({ success: false, message: 'Authentication failed. Wrong password.' });
+                } else {
+                    const payload = {
+                        _id: user._id,
+                        username: user.username,
+                        email: user.email
+                    };
+                    var token = jwt.sign(payload, "TOKENAUTHENTIFICATION", {
+                        expiresIn: '24h'
+                    });
+
+                    res.json({
+                        success: true,
+                        message: 'Enjoy your token!',
+                        token: token
+                    });
+                }
+            }
+        })
+    })
+
+router.use(function(req, res, next) {
+  var token = req.body.token || req.query.token || req.headers['x-access-token'];
+  if (token) {
+    jwt.verify(token, "TOKENAUTHENTIFICATION", function(err, decoded) {
+      if (err) {
+        return res.json({ success: false, message: 'Failed to authenticate token.' });
+      } else {
+        // if everything is good, save to request for use in other routes
+        req.decoded = decoded;
+        next();
+      }
+    });
+  } else {
+    return res.status(403).send({
+        success: false,
+        message: 'No token provided.'
+    });
+  }
+});
+
 router.get("/", (req, res) => {
     res.json({ message: 'The Restful API is up and running...' });
 });
 
 router.route("/api/users")
     .post(function(req, res) {
-        var testUser = new UserModel({ username: req.body.username, email: req.body.email, password: req.body.password});
+        var newUser = new UserModel({ username: req.body.username, email: req.body.email, password: req.body.password});
+        var salt = bcrypt.genSaltSync(10);
+        newUser.password = bcrypt.hashSync(req.body.password, salt);
 
-        testUser.save(function (err) {
+        newUser.save(function (err) {
           if (err) return res.send(err);
           res.send("User created.");
         });

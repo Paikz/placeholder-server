@@ -7,6 +7,7 @@ var app = require('./bin/app');
 var socket = require('./websocket/socket');
 var server = http.createServer(app);
 var socketServer = socket(server);
+mongoose.Promise = global.Promise;
 
 //Mongoose
 const dsn =  process.env.DBWEBB_DSN || "mongodb://localhost:27017/test";
