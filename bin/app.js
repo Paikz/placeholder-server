@@ -1,25 +1,24 @@
 "use strict";
 
 //Vars
-var express    = require("express");
-var app        = express();
-var bodyParser = require('body-parser');
-const path     = require("path");
+var express     = require("express");
+var compression = require('compression');
+var cors        = require('cors');
+var bodyParser  = require('body-parser');
+const path      = require("path");
+var app         = express();
 
 //Routes
 var routes = require('../routes/routes');
 
 //map routes to right directory
-app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
-});
-
+app.use(compression());
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use('/', routes);
+app.use(express.static(path.join(__dirname, '../content')));
 
 // Catch 404 and forward to error handler
 app.use((req, res, next) => {

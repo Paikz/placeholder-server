@@ -1,13 +1,31 @@
 
 var express   = require('express');
 var mongoose  = require('mongoose');
+var fs        = require('fs');
 var jwt       = require('jsonwebtoken');
 var bcrypt    = require('bcryptjs');
+var multer    = require('multer');
+var path      = require('path');
+const crypto  = require('crypto');
 var router    = express.Router();
+
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './content')
+  },
+  filename: function (req, file, cb) {
+    crypto.pseudoRandomBytes(16, function (err, raw) {
+      cb(null, raw.toString('hex') + Date.now() + path.extname(file.originalname));
+    });
+  }
+});
+var upload = multer({ storage: storage });
 
 //Models
 var User = require('../models/user.model')
 var UserModel = mongoose.model('User')
+var Post = require('../models/post.model')
+var PostModel = mongoose.model('Post')
 
 router.use((req, res, next) => {
     console.log("Incoming " + req.method + " req to: " + req.path);
@@ -33,7 +51,7 @@ router.route("/api/authenticate")
     .post(function(req, res) {
         UserModel.findOne({
             username: req.body.username
-        }, function(err, user) {
+        }, "+password", function(err, user) {
             if (err) return res.send(err);
             if (!user) {
                 return res.status(401).send({ success: false, message: 'Authentication failed.' });
@@ -41,11 +59,11 @@ router.route("/api/authenticate")
                 if (!user.comparePassword(req.body.password)) {
                     return res.status(401).send({ success: false, message: 'Authentication failed.' });
                 } else {
-                    const payload = {
-                        _id: user._id,
+                    let payload = {
                         username: user.username,
-                        email: user.email
-                    };
+                        email: user.email,
+                        img: user.img
+                    }
                     var token = jwt.sign(payload, "TOKENAUTHENTICATION", {
                         expiresIn: '24h'
                     });
@@ -61,7 +79,7 @@ router.route("/api/authenticate")
     })
 
 router.use(function(req, res, next) {
-  var token = req.body.token || req.query.token || req.headers['x-access-token'];
+  var token = req.body.token || req.query.token || req.headers['x-access-token'] || req.headers['authorization'].split(' ')[1];
   if (token) {
     jwt.verify(token, "TOKENAUTHENTICATION", function(err, decoded) {
       if (err) {
@@ -99,9 +117,9 @@ router.route("/api/users")
         })
     });
 
-router.route("/api/users/:user_id")
+router.route("/api/users/:username")
     .get(function(req, res) {
-      UserModel.findById(req.params.user_id, function(err, user) {
+      UserModel.findOne({ 'username': req.params.username }, function (err, user) {
           if (err) return res.send(err);
           res.json(user);
       })
@@ -128,6 +146,60 @@ router.route("/api/users/:user_id")
         }, function(err, user) {
           if (err) return res.send(err);
           res.json({message: 'Successfully deleted entry.'});
+        })
+    });
+
+router.route("/api/content/:path")
+    .get(function(req, res) {
+        res.sendFile(path.resolve('content/' + req.params.path),
+        function(err) {
+            if (err) return res.send(err);
+        });
+    })
+
+router.route("/api/upload/avatar")
+    .patch(upload.single('avatar'), function(req, res) {
+        console.log(req.file)
+        UserModel.findOneAndUpdate({ 'username': req.body.username },
+        { $set:
+            {
+                "img": req.file.filename
+             }
+        },
+        function (err, user) {
+            if (err) return res.send(err);
+            user.save(function (err, a) {
+                if (err) return res.send(err);
+                res.json({message: 'saved img to mongo'});
+            })
+        })
+    });
+
+router.route('/api/upload/post')
+    .post(upload.single('post'), function(req, res) {
+        console.log(req.file)
+        var newPost = new PostModel({ username: req.body.username, description: req.body.description, img: req.file.filename});
+
+        newPost.save(function (err) {
+            if (err) return res.send(err);
+            res.json({message: 'Post created.'});
+        });
+    })
+
+router.route('/api/posts/:username')
+    .get(function(req, res) {
+        console.log(req.params.username)
+        PostModel.find({username: req.params.username}, function (err, posts) {
+          if (err) return res.send(err);
+          res.json(posts);
+        })
+    })
+
+router.route('/api/posts')
+    .delete(function(req, res) {
+        PostModel.remove({}, function(err) {
+          if (err) return res.send(err);
+          res.json({message: 'Successfully deleted all entries.'});
         })
     });
 

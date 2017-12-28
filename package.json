@@ -9,7 +9,7 @@
     "clean": "rm -rf npm-debug.log coverage .nyc_output",
     "preclean-all": "npm run clean",
     "clean-all": "rm -rf node_modules",
-    "start": "node index.js",
+    "start": "NODE_ENV=production node index.js",
     "docker-start": "docker-compose up express",
     "node6": "docker-compose up -d node6",
     "node7": "docker-compose up -d node7",
@@ -29,10 +29,13 @@
   "devDependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.2",
+    "compression": "^1.7.1",
+    "cors": "^2.8.4",
     "coveralls": "^3.0.0",
     "jsonwebtoken": "^8.1.0",
     "mocha": "^4.0.1",
     "mongoose": "^4.13.7",
+    "multer": "^1.3.0",
     "nyc": "^11.3.0",
     "supertest": "^3.0.0",
     "ws": "^3.3.2"
