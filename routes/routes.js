@@ -51,7 +51,7 @@ router.route("/api/authenticate")
     .post(function(req, res) {
         UserModel.findOne({
             username: req.body.username
-        }, "+password", function(err, user) {
+        },["+password", "+_id", "+__v"], function(err, user) {
             if (err) return res.send(err);
             if (!user) {
                 return res.status(401).send({ success: false, message: 'Authentication failed.' });
@@ -60,6 +60,8 @@ router.route("/api/authenticate")
                     return res.status(401).send({ success: false, message: 'Authentication failed.' });
                 } else {
                     let payload = {
+                        id: user._id,
+                        __v: user.__v,
                         username: user.username,
                         email: user.email,
                         img: user.img
@@ -121,33 +123,27 @@ router.route("/api/users/:username")
     .get(function(req, res) {
       UserModel.findOne({ 'username': req.params.username }, function (err, user) {
           if (err) return res.send(err);
+          if (!user) {
+              return res.status(404).send({success: false, message: 'User not found'})
+          }
           res.json(user);
       })
     })
 
-    .put(function(req, res) {
-      UserModel.findById(req.params.user_id, function(err, user) {
-          if (err) return res.send(err);
-
-          user.username = req.body.username;
-          user.email = req.body.email;
-
-          user.save(function(err) {
-              if (err) res.send(err);
-              res.json({ message: 'User updated.' });
-          });
-
-      });
-    })
-
-    .delete(function(req, res) {
-        UserModel.remove({
-          _id: req.params.user_id
-        }, function(err, user) {
-          if (err) return res.send(err);
-          res.json({message: 'Successfully deleted entry.'});
-        })
-    });
+    // .put(function(req, res) {
+    //   UserModel.findById(req.params.user_id, function(err, user) {
+    //       if (err) return res.send(err);
+    //
+    //       user.username = req.body.username;
+    //       user.email = req.body.email;
+    //
+    //       user.save(function(err) {
+    //           if (err) res.send(err);
+    //           res.json({ message: 'User updated.' });
+    //       });
+    //
+    //   });
+    // })
 
 router.route("/api/content/:path")
     .get(function(req, res) {
@@ -159,48 +155,116 @@ router.route("/api/content/:path")
 
 router.route("/api/upload/avatar")
     .patch(upload.single('avatar'), function(req, res) {
-        console.log(req.file)
-        UserModel.findOneAndUpdate({ 'username': req.body.username },
-        { $set:
-            {
-                "img": req.file.filename
-             }
-        },
-        function (err, user) {
-            if (err) return res.send(err);
-            user.save(function (err, a) {
+        if (req.decoded.id != req.body.id) {
+            res.status(401).send({success: false, message: 'Current user does not have permission to change this.'});
+        } else {
+            UserModel.findOneAndUpdate({ 'username': req.body.username },
+            { $set:
+                {
+                    "img": req.file.filename
+                 }
+            },
+            function (err, user) {
                 if (err) return res.send(err);
-                res.json({message: 'saved img to mongo'});
+                user.save(function (err, a) {
+                    if (err) return res.send(err);
+                    res.json({message: 'saved img to mongo'});
+                })
             })
-        })
+        }
     });
 
 router.route('/api/upload/post')
     .post(upload.single('post'), function(req, res) {
-        console.log(req.file)
-        var newPost = new PostModel({ username: req.body.username, description: req.body.description, img: req.file.filename});
+        if (req.decoded.id != req.body.id) {
+            res.status(401).send({success: false, message: 'Current user does not have permission to upload this.'});
+        } else {
+            var newPost = new PostModel({ username: req.body.username, description: req.body.description, img: req.file.filename});
 
-        newPost.save(function (err) {
-            if (err) return res.send(err);
-            res.json({message: 'Post created.'});
-        });
+            newPost.save(function (err) {
+                if (err) return res.send(err);
+                res.json({message: 'Post created.'});
+            });
+        }
     })
 
 router.route('/api/posts/:username')
     .get(function(req, res) {
-        console.log(req.params.username)
         PostModel.find({username: req.params.username}, function (err, posts) {
           if (err) return res.send(err);
           res.json(posts);
         })
     })
 
-router.route('/api/posts')
-    .delete(function(req, res) {
-        PostModel.remove({}, function(err) {
-          if (err) return res.send(err);
-          res.json({message: 'Successfully deleted all entries.'});
+router.route('/api/posts/:id')
+    //This is a delete in spirit. We use post to be able to check username in the body.
+    .post(function(req, res) {
+        if (req.decoded.id != req.body.id) {
+            res.status(401).send({success: false, message: 'Current user does not have permission to change this.'});
+        } else {
+            PostModel.remove({_id: req.params.id}, function (err) {
+              if (err) return res.send(err);
+              res.json({message: 'Successfully deleted post'});
+            })
+        }
+    })
+
+router.route('/api/follow')
+    .put(function(req, res) {
+        if (req.decoded.id != req.body.id) {
+            res.status(401).send({success: false, message: 'Current user does not have permission to do this.'});
+        } else {
+            UserModel.findOneAndUpdate({username: req.body.username},
+                {
+                    $push: { followers: req.decoded.username },
+                    $inc: { followers_number: 1}
+                },
+                function(err, user) {
+                user.save(function(err) {
+                    if (err) return res.send(err);
+                    UserModel.findOneAndUpdate({username: req.decoded.username},
+                        {
+                            $push: { following: req.body.username },
+                            $inc: { following_number: 1}
+                        },
+                        function(err, user) {
+                        user.save(function(err) {
+                            if (err) return res.send(err);
+                            res.json({message: 'Followed user successfully'});
+                        })
+                    })
+                })
+            })
+        }
+    })
+
+    router.route('/api/unfollow')
+        .put(function(req, res) {
+            if (req.decoded.id != req.body.id) {
+                res.status(401).send({success: false, message: 'Current user does not have permission to do this.'});
+            } else {
+                UserModel.findOneAndUpdate({username: req.body.username},
+                    {
+                        $pull: { followers: req.decoded.username },
+                        $inc: { followers_number: -1}
+                    },
+                    function(err, user) {
+                    user.save(function(err) {
+                        if (err) return res.send(err);
+                        UserModel.findOneAndUpdate({username: req.decoded.username},
+                            {
+                                $pull: { following: req.body.username },
+                                $inc: { following_number: -1}
+                            },
+                            function(err, user) {
+                            user.save(function(err) {
+                                if (err) return res.send(err);
+                                res.json({message: 'Unfollowed user successfully'});
+                            })
+                        })
+                    })
+                })
+            }
         })
-    });
 
 module.exports = router;
