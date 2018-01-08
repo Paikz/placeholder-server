@@ -9,9 +9,9 @@ The server side of Scenery, a social media application where users can share the
 
 ## Requirements
 
-node
-npm
-mongodb
+node  
+npm  
+mongodb  
 
 ## Installation
 
