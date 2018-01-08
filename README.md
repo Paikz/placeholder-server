@@ -1,5 +1,5 @@
 
-[![Build Status](https://travis-ci.org/Paikz/placeholder-server.svg?branch=master)](https://travis-ci.org/Paikz/placeholder-server)
+[![Build Status](https://travis-ci.org/Paikz/scenery_server.svg?branch=master)](https://travis-ci.org/Paikz/scenery_server)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Paikz/placeholder-server/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Paikz/placeholder-server/?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/Paikz/placeholder-server/badge.svg?branch=master)](https://coveralls.io/github/Paikz/placeholder-server?branch=master)
 
