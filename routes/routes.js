@@ -27,10 +27,11 @@ var UserModel = mongoose.model('User')
 var Post = require('../models/post.model')
 var PostModel = mongoose.model('Post')
 
-router.use((req, res, next) => {
-    console.log("Incoming " + req.method + " req to: " + req.path);
-    next();
-});
+//Debug purp
+// router.use((req, res, next) => {
+//     console.log("Incoming " + req.method + " req to: " + req.path);
+//     next();
+// });
 
 router.route("/api/users")
     .post(function(req, res) {
@@ -42,8 +43,8 @@ router.route("/api/users")
             if (err && err.code === 11000) {
                 return res.status(400).send({ message: 'Duplicate email.' });
             }
-            if (err) return res.send(err);
-            res.send("User created.");
+            if (err) { return res.send(err) };
+            return res.send("User created.");
         });
     })
 
@@ -101,32 +102,32 @@ router.use(function(req, res, next) {
 });
 
 router.get("/", (req, res) => {
-    res.json({ message: 'The Restful API is up and running...' });
+    return res.json({ message: 'The Restful API is up and running...' });
 });
 
 router.route("/api/users")
     .get(function(req, res) {
         UserModel.find(function (err, users) {
-          if (err) return res.send(err);
-          res.json(users);
+          if (err) { return res.send(err) };
+          return res.json(users);
         })
     })
 
     .delete(function(req, res) {
         UserModel.remove({}, function(err) {
-          if (err) return res.send(err);
-          res.json({message: 'Successfully deleted all entries.'});
+          if (err) { return res.send(err) };
+          return res.json({message: 'Successfully deleted all entries.'});
         })
     });
 
 router.route("/api/users/:username")
     .get(function(req, res) {
       UserModel.findOne({ 'username': req.params.username }, function (err, user) {
-          if (err) return res.send(err);
+          if (err) { return res.send(err) };
           if (!user) {
               return res.status(404).send({success: false, message: 'User not found'})
           }
-          res.json(user);
+          return res.json(user);
       })
     })
 
@@ -149,14 +150,14 @@ router.route("/api/content/:path")
     .get(function(req, res) {
         res.sendFile(path.resolve('content/' + req.params.path),
         function(err) {
-            if (err) return res.send(err);
+            if (err) { return res.send(err) };
         });
     })
 
 router.route("/api/upload/avatar")
     .patch(upload.single('avatar'), function(req, res) {
         if (req.decoded.id != req.body.id) {
-            res.status(401).send({success: false, message: 'Current user does not have permission to change this.'});
+            return res.status(401).send({success: false, message: 'Current user does not have permission to change this.'});
         } else {
             UserModel.findOneAndUpdate({ 'username': req.body.username },
             { $set:
@@ -165,10 +166,10 @@ router.route("/api/upload/avatar")
                  }
             },
             function (err, user) {
-                if (err) return res.send(err);
+                if (err) { return res.send(err) };
                 user.save(function (err, a) {
                     if (err) return res.send(err);
-                    res.json({message: 'saved img to mongo'});
+                    return res.json({message: 'saved img to mongo'});
                 })
             })
         }
@@ -177,13 +178,13 @@ router.route("/api/upload/avatar")
 router.route('/api/upload/post')
     .post(upload.single('post'), function(req, res) {
         if (req.decoded.id != req.body.id) {
-            res.status(401).send({success: false, message: 'Current user does not have permission to upload this.'});
+            return res.status(401).send({success: false, message: 'Current user does not have permission to upload this.'});
         } else {
             var newPost = new PostModel({ username: req.body.username, description: req.body.description, img: req.file.filename});
 
             newPost.save(function (err) {
-                if (err) return res.send(err);
-                res.json({message: 'Post created.'});
+                if (err) { return res.send(err) };
+                return res.json({message: 'Post created.'});
             });
         }
     })
@@ -191,20 +192,30 @@ router.route('/api/upload/post')
 router.route('/api/posts/:username')
     .get(function(req, res) {
         PostModel.find({username: req.params.username}, function (err, posts) {
-          if (err) return res.send(err);
-          res.json(posts);
+          if (err) { return res.send(err) };
+          return res.json(posts);
         })
+    })
+
+router.route('/api/posts/following/:username')
+    .get(function(req, res) {
+        UserModel.findOne({username: req.params.username})
+            .populate('followingPosts')
+            .exec(function(err, doc) {
+                if (err) { return res.send(err) };
+                return res.json(doc.followingPosts);
+            })
     })
 
 router.route('/api/posts/:id')
     //This is a delete in spirit. We use post to be able to check username in the body.
     .post(function(req, res) {
         if (req.decoded.id != req.body.id) {
-            res.status(401).send({success: false, message: 'Current user does not have permission to change this.'});
+            return res.status(401).send({success: false, message: 'Current user does not have permission to change this.'});
         } else {
             PostModel.remove({_id: req.params.id}, function (err) {
-              if (err) return res.send(err);
-              res.json({message: 'Successfully deleted post'});
+              if (err) { return res.send(err) };
+              return res.json({message: 'Successfully deleted post'});
             })
         }
     })
@@ -212,7 +223,7 @@ router.route('/api/posts/:id')
 router.route('/api/follow')
     .put(function(req, res) {
         if (req.decoded.id != req.body.id) {
-            res.status(401).send({success: false, message: 'Current user does not have permission to do this.'});
+            return res.status(401).send({success: false, message: 'Current user does not have permission to do this.'});
         } else {
             UserModel.findOneAndUpdate({username: req.body.username},
                 {
@@ -221,7 +232,7 @@ router.route('/api/follow')
                 },
                 function(err, user) {
                 user.save(function(err) {
-                    if (err) return res.send(err);
+                    if (err) { return res.send(err) };
                     UserModel.findOneAndUpdate({username: req.decoded.username},
                         {
                             $push: { following: req.body.username },
@@ -229,8 +240,8 @@ router.route('/api/follow')
                         },
                         function(err, user) {
                         user.save(function(err) {
-                            if (err) return res.send(err);
-                            res.json({message: 'Followed user successfully'});
+                            if (err) { return res.send(err) };
+                            return res.json({message: 'Followed user successfully'});
                         })
                     })
                 })
@@ -241,7 +252,7 @@ router.route('/api/follow')
     router.route('/api/unfollow')
         .put(function(req, res) {
             if (req.decoded.id != req.body.id) {
-                res.status(401).send({success: false, message: 'Current user does not have permission to do this.'});
+                return res.status(401).send({success: false, message: 'Current user does not have permission to do this.'});
             } else {
                 UserModel.findOneAndUpdate({username: req.body.username},
                     {
@@ -250,7 +261,7 @@ router.route('/api/follow')
                     },
                     function(err, user) {
                     user.save(function(err) {
-                        if (err) return res.send(err);
+                        if (err) { return res.send(err) };
                         UserModel.findOneAndUpdate({username: req.decoded.username},
                             {
                                 $pull: { following: req.body.username },
@@ -258,8 +269,8 @@ router.route('/api/follow')
                             },
                             function(err, user) {
                             user.save(function(err) {
-                                if (err) return res.send(err);
-                                res.json({message: 'Unfollowed user successfully'});
+                                if (err) { return res.send(err) };
+                                return res.json({message: 'Unfollowed user successfully'});
                             })
                         })
                     })

@@ -50,6 +50,15 @@ var userSchema = mongoose.Schema({
 
 });
 
+userSchema.virtual('followingPosts', {
+    ref: 'Post',
+    localField: 'following',
+    foreignField: 'username'
+});
+
+userSchema.set('toObject', { virtuals: true });
+userSchema.set('toJSON', { virtuals: true });
+
 userSchema.methods.comparePassword = function(password) {
     return bcrypt.compareSync(password, this.password);
 }
