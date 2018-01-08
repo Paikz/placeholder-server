@@ -53,10 +53,10 @@ router.route("/api/authenticate")
         UserModel.findOne({
             username: req.body.username
         },["+password", "+_id", "+__v"], function(err, user) {
-            if (err) return res.send(err);
+            if (err) { return res.send(err) };
             if (!user) {
                 return res.status(401).send({ success: false, message: 'Authentication failed.' });
-            } else if (user) {
+            } else {
                 if (!user.comparePassword(req.body.password)) {
                     return res.status(401).send({ success: false, message: 'Authentication failed.' });
                 } else {
@@ -71,7 +71,7 @@ router.route("/api/authenticate")
                         expiresIn: '24h'
                     });
 
-                    res.json({
+                    return res.json({
                         success: true,
                         message: 'Enjoy your token!',
                         token: token
@@ -167,8 +167,8 @@ router.route("/api/upload/avatar")
             },
             function (err, user) {
                 if (err) { return res.send(err) };
-                user.save(function (err, a) {
-                    if (err) return res.send(err);
+                user.save(function (err) {
+                    if (err) { return res.send(err) };
                     return res.json({message: 'saved img to mongo'});
                 })
             })
