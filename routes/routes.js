@@ -3,6 +3,7 @@ var express   = require('express');
 var mongoose  = require('mongoose');
 var fs        = require('fs');
 var jwt       = require('jsonwebtoken');
+var jwtMiddleware = require('express-jwt-verify-middleware');
 var bcrypt    = require('bcryptjs');
 var multer    = require('multer');
 var path      = require('path');
@@ -81,25 +82,7 @@ router.route("/api/authenticate")
         })
     })
 
-router.use(function(req, res, next) {
-  var token = req.body.token || req.query.token || req.headers['x-access-token'] || req.headers['authorization'].split(' ')[1];
-  if (token) {
-    jwt.verify(token, "TOKENAUTHENTICATION", function(err, decoded) {
-      if (err) {
-        return res.send({ success: false, message: 'Failed to authenticate token.' });
-      } else {
-        // if everything is good, save to request for use in other routes
-        req.decoded = decoded;
-        next();
-      }
-    });
-  } else {
-    return res.status(403).send({
-        success: false,
-        message: 'No token provided.'
-    });
-  }
-});
+router.use(jwtMiddleware("TOKENAUTHENTICATION"));
 
 router.get("/", (req, res) => {
     return res.json({ message: 'The Restful API is up and running...' });
